@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Révisions Prépa — Répétition Espacée</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f5f3;--bg3:#eeede9;
+  --text:#1a1a1a;--text2:#6b6b6b;--text3:#999;
+  --border:#e0ddd6;--border2:#c8c5be;
+  --radius:10px;--radius-lg:14px;
+  --due:#D85A30;--ok:#1D9E75;--blue:#378ADD;
+  --due-bg:#FAECE7;--due-text:#993C1D;
+  --ok-bg:#EAF3DE;--ok-text:#3B6D11;
+  --blue-bg:#E6F1FB;--blue-text:#0C447C;
+  --purple-bg:#EEEDFE;--purple-text:#3C3489;
+  --amber-bg:#FAEEDA;--amber-text:#854F0B;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0ede8;color:var(--text);min-height:100vh}
+.app-wrap{max-width:760px;margin:0 auto;padding:2rem 1rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+.title{font-size:22px;font-weight:600;letter-spacing:-.02em}
+.subtitle{font-size:13px;color:var(--text2);margin-top:3px}
+.tabs{display:flex;gap:4px;background:var(--bg2);padding:4px;border-radius:var(--radius);border:1px solid var(--border)}
+.tab{padding:6px 16px;font-size:13px;border:none;background:transparent;cursor:pointer;border-radius:8px;color:var(--text2);transition:all .15s;font-weight:500}
+.tab.active{background:var(--bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid var(--border)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.stat-val{font-size:24px;font-weight:600;margin-bottom:2px}
+.stat-lbl{font-size:12px;color:var(--text2)}
+.due-color{color:var(--due)}.ok-color{color:var(--ok)}.blue-color{color:var(--blue)}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:8px;transition:box-shadow .15s}
+.card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.card-title{font-size:15px;font-weight:600;margin-bottom:6px;letter-spacing:-.01em}
+.card-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.badge{font-size:11px;padding:2px 9px;border-radius:10px;font-weight:600;letter-spacing:.01em}
+.b-maths{background:var(--blue-bg);color:var(--blue-text)}
+.b-physique{background:var(--purple-bg);color:var(--purple-text)}
+.b-info{background:var(--amber-bg);color:var(--amber-text)}
+.b-si{background:#EAF3DE;color:#27500A}
+.b-due{background:var(--due-bg);color:var(--due-text)}
+.b-ok{background:var(--ok-bg);color:var(--ok-text)}
+.b-new{background:var(--bg2);color:var(--text2)}
+.card-actions{display:flex;gap:6px;flex-shrink:0}
+.btn{padding:6px 13px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);cursor:pointer;color:var(--text);transition:all .15s;font-weight:500}
+.btn:hover{background:var(--bg2)}
+.btn-primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn-primary:hover{opacity:.85}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#E24B4A}
+.btn-danger:hover{background:#FCEBEB}
+.review-btns{display:flex;gap:8px;margin-top:12px}
+.review-btn{flex:1;padding:10px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .15s;font-weight:600}
+.rb-hard{background:var(--due-bg);color:var(--due-text)}.rb-hard:hover{filter:brightness(.95)}
+.rb-med{background:var(--amber-bg);color:var(--amber-text)}.rb-med:hover{filter:brightness(.95)}
+.rb-easy{background:var(--ok-bg);color:var(--ok-text)}.rb-easy:hover{filter:brightness(.95)}
+.expanded{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.exo-images{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.exo-img{width:110px;height:110px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;transition:opacity .15s}
+.exo-img:hover{opacity:.8}
+.next-info{font-size:12px;color:var(--text3);margin-top:8px}
+.progress-bar{height:3px;background:var(--bg3);border-radius:2px;margin-top:6px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;background:var(--ok);transition:width .3s}
+.notif{background:var(--ok-bg);border:1px solid #C0DD97;border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--ok-text);margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.notif.warn{background:var(--amber-bg);border-color:#FAC775;color:var(--amber-text)}
+.form-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem}
+.form-row{margin-bottom:16px}
+.form-label{font-size:13px;color:var(--text2);margin-bottom:6px;display:block;font-weight:500}
+.form-row input[type=text],.form-row select,.form-row textarea{width:100%;font-size:14px;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit;outline:none;transition:border-color .15s}
+.form-row input[type=text]:focus,.form-row select:focus,.form-row textarea:focus{border-color:#888}
+.form-row textarea{height:80px;resize:vertical}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.img-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.img-thumb{position:relative;width:80px;height:80px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+.img-thumb img{width:100%;height:100%;object-fit:cover}
+.img-del{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;line-height:1}
+.tag-input{display:flex;gap:6px;flex-wrap:wrap;align-items:center;border:1px solid var(--border2);border-radius:var(--radius);padding:6px 10px;min-height:40px;background:var(--bg);cursor:text}
+.tag{background:var(--bg2);padding:2px 8px;border-radius:10px;font-size:12px;display:flex;align-items:center;gap:5px;font-weight:500}
+.tag-x{cursor:pointer;color:var(--text2);font-size:14px;line-height:1}
+.tag-input input{border:none;outline:none;font-size:14px;background:transparent;color:var(--text);flex:1;min-width:100px}
+.section-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.filters{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.filter-btn{padding:4px 14px;font-size:12px;border:1px solid var(--border);border-radius:10px;background:transparent;cursor:pointer;color:var(--text2);font-weight:500;transition:all .15s}
+.filter-btn.active{border-color:var(--text);color:var(--text);background:var(--bg)}
+.empty{text-align:center;padding:2.5rem;color:var(--text2);font-size:14px}
+.ok-banner{background:var(--ok-bg);border:1px solid #C0DD97;border-radius:var(--radius);padding:12px 16px;font-size:14px;color:var(--ok-text);margin-bottom:1rem;font-weight:500}
+.file-btn{display:inline-block;padding:8px 14px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg2);cursor:pointer;color:var(--text);font-weight:500}
+input[type=file]{display:none}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999;align-items:center;justify-content:center;cursor:zoom-out}
+.modal-overlay.open{display:flex}
+.modal-overlay img{max-width:95vw;max-height:95vh;border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+@media(max-width:600px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:1fr}
+  .review-btns{flex-direction:column}
+  .header{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+<div class="app-wrap">
+  <div class="header">
+    <div>
+      <div class="title">📚 Révisions Prépa</div>
+      <div class="subtitle">Répétition espacée · Algorithme SM-2 · Maths & Physique</div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('dashboard')">Tableau de bord</button>
+      <button class="tab" onclick="showTab('add')">+ Ajouter</button>
+      <button class="tab" onclick="showTab('all')">Tous les exos</button>
+    </div>
+  </div>
+
+  <div id="notif-area"></div>
+
+  <div id="tab-dashboard">
+    <div class="stats" id="stats"></div>
+    <div id="due-section"></div>
+    <div id="later-section"></div>
+  </div>
+
+  <div id="tab-add" style="display:none">
+    <div class="form-wrap">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">Titre de l'exercice</label>
+          <input id="f-title" type="text" placeholder="ex: Diagonalisation — Mines 2023">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Matière</label>
+          <select id="f-subject">
+            <option value="Maths">Maths</option>
+            <option value="Physique">Physique</option>
+            <option value="Info">Info</option>
+            <option value="SI">SI</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Tags — appuie sur Entrée pour valider</label>
+        <div class="tag-input" id="tag-container" onclick="document.getElementById('tag-field').focus()">
+          <input id="tag-field" type="text" placeholder="ex: suites, intégrales, diagonalisation..." onkeydown="handleTagKey(event)">
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Technique / Point clé (ce que tu dois retenir)</label>
+        <textarea id="f-note" placeholder="Décris la méthode ou l'astuce principale de cet exercice..."></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Photos (énoncé + correction)</label>
+        <label for="f-images" class="file-btn">📎 Choisir des images</label>
+        <input type="file" id="f-images" accept="image/*" multiple onchange="handleImages(event)">
+        <div class="img-preview" id="img-preview"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:11px;font-size:14px" onclick="addExo()">Ajouter l'exercice</button>
+    </div>
+  </div>
+
+  <div id="tab-all" style="display:none">
+    <div class="filters" id="filters">
+      <button class="filter-btn active" onclick="setFilter('all',this)">Tous</button>
+      <button class="filter-btn" onclick="setFilter('Maths',this)">Maths</button>
+      <button class="filter-btn" onclick="setFilter('Physique',this)">Physique</button>
+      <button class="filter-btn" onclick="setFilter('Info',this)">Info</button>
+      <button class="filter-btn" onclick="setFilter('SI',this)">SI</button>
+      <button class="filter-btn" onclick="setFilter('due',this)">À réviser</button>
+    </div>
+    <div id="all-list"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="closeModal()">
+  <img id="modal-img" src="" alt="Aperçu">
+</div>
+
+<script>
+var exos = JSON.parse(localStorage.getItem('prepa_exos') || '[]');
+var tags = [];
+var tempImages = [];
+var expandedId = null;
+var currentFilter = 'all';
+
+function save() { localStorage.setItem('prepa_exos', JSON.stringify(exos)); }
+function today() { return new Date().toISOString().split('T')[0]; }
+function addDays(d, n) { var dt = new Date(d); dt.setDate(dt.getDate() + n); return dt.toISOString().split('T')[0]; }
+function isDue(exo) { return exo.nextReview <= today(); }
+
+function sm2(exo, q) {
+  var ef = exo.ef || 2.5;
+  var interval = exo.interval || 0;
+  var reps = exo.reps || 0;
+  ef = Math.max(1.3, ef + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)));
+  if (q < 3) { reps = 0; interval = 1; }
+  else {
+    if (reps === 0) interval = 1;
+    else if (reps === 1) interval = 6;
+    else interval = Math.round(interval * ef);
+    reps++;
+  }
+  return { ef: parseFloat(ef.toFixed(2)), interval: interval, reps: reps, nextReview: addDays(today(), interval) };
+}
+
+function handleImages(e) {
+  var files = Array.from(e.target.files);
+  files.forEach(function(f) {
+    var r = new FileReader();
+    r.onload = function(ev) { tempImages.push(ev.target.result); renderPreviews(); };
+    r.readAsDataURL(f);
+  });
+}
+
+function renderPreviews() {
+  var c = document.getElementById('img-preview');
+  c.innerHTML = tempImages.map(function(src, i) {
+    return '<div class="img-thumb"><img src="' + src + '"><button class="img-del" onclick="removeImg(' + i + ')">×</button></div>';
+  }).join('');
+}
+
+function removeImg(i) { tempImages.splice(i, 1); renderPreviews(); }
+
+function handleTagKey(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    var v = e.target.value.trim();
+    if (v && !tags.includes(v)) { tags.push(v); renderTagsInput(); }
+    e.target.value = '';
+  }
+}
+
+function renderTagsInput() {
+  var c = document.getElementById('tag-container');
+  var inp = document.getElementById('tag-field');
+  c.innerHTML = '';
+  tags.forEach(function(t, i) {
+    var s = document.createElement('span');
+    s.className = 'tag';
+    s.innerHTML = t + '<span class="tag-x" onclick="removeTag(' + i + ')">×</span>';
+    c.appendChild(s);
+  });
+  c.appendChild(inp);
+}
+
+function removeTag(i) { tags.splice(i, 1); renderTagsInput(); }
+
+function addExo() {
+  var title = document.getElementById('f-title').value.trim();
+  if (!title) { showNotif('Donne un titre à l\'exercice.', 'warn'); return; }
+  var exo = {
+    id: Date.now(),
+    title: title,
+    subject: document.getElementById('f-subject').value,
+    note: document.getElementById('f-note').value.trim(),
+    tags: tags.slice(),
+    images: tempImages.slice(),
+    createdAt: today(),
+    nextReview: today(),
+    interval: 0, reps: 0, ef: 2.5, history: []
+  };
+  exos.unshift(exo); save();
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-note').value = '';
+  document.getElementById('f-images').value = '';
+  tags = []; tempImages = [];
+  renderTagsInput(); renderPreviews();
+  showTab('dashboard'); render();
+  showNotif('Exercice ajouté ! Il est prêt pour une première révision.', 'ok');
+}
+
+function review(id, q) {
+  var exo = exos.find(function(e) { return e.id === id; });
+  if (!exo) return;
+  var res = sm2(exo, q);
+  exo.ef = res.ef; exo.interval = res.interval; exo.reps = res.reps; exo.nextReview = res.nextReview;
+  exo.history.push({ date: today(), q: q, interval: res.interval });
+  save(); expandedId = null; render();
+  var labels = { 1: 'Difficile', 3: 'Moyen', 5: 'Facile' };
+  showNotif('Noté ' + labels[q] + ' — prochain rappel dans ' + res.interval + ' jour' + (res.interval > 1 ? 's' : '') + '.', 'ok');
+}
+
+function deleteExo(id) {
+  if (!confirm('Supprimer cet exercice définitivement ?')) return;
+  exos = exos.filter(function(e) { return e.id !== id; });
+  save(); render();
+}
+
+function toggleExpand(id) {
+  expandedId = (expandedId === id) ? null : id;
+  render();
+}
+
+function showNotif(msg, type) {
+  var a = document.getElementById('notif-area');
+  a.innerHTML = '<div class="notif' + (type === 'warn' ? ' warn' : '') + '">' + (type === 'ok' ? '✓ ' : '⚠ ') + msg + '</div>';
+  setTimeout(function() { a.innerHTML = ''; }, 4000);
+}
+
+function showTab(t) {
+  ['dashboard', 'add', 'all'].forEach(function(id) {
+    document.getElementById('tab-' + id).style.display = (id === t) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach(function(btn, i) {
+    btn.classList.toggle('active', ['dashboard', 'add', 'all'][i] === t);
+  });
+  if (t === 'dashboard' || t === 'all') render();
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderAllList();
+}
+
+function formatDate(d) {
+  if (d === today()) return 'Aujourd\'hui';
+  var dt = new Date(d), now = new Date(today());
+  var diff = Math.round((dt - now) / (1000 * 60 * 60 * 24));
+  if (diff === 1) return 'Demain';
+  if (diff < 0) return 'En retard de ' + Math.abs(diff) + ' j';
+  return 'Dans ' + diff + ' j';
+}
+
+function subjectBadge(s) {
+  var cls = { 'Maths': 'b-maths', 'Physique': 'b-physique', 'Info': 'b-info', 'SI': 'b-si' };
+  return '<span class="badge ' + (cls[s] || 'b-new') + '">' + s + '</span>';
+}
+
+function renderCard(exo, showReview) {
+  var due = isDue(exo);
+  var badgeCls = exo.reps === 0 ? 'b-new' : due ? 'b-due' : 'b-ok';
+  var badgeTxt = exo.reps === 0 ? 'Nouveau' : due ? 'À réviser' : 'OK · dans ' + formatDate(exo.nextReview);
+  var expanded = expandedId === exo.id;
+  var progress = exo.reps > 0 ? Math.min(100, Math.round((exo.reps / 8) * 100)) : 0;
+
+  var html = '<div class="card">';
+  html += '<div class="card-header"><div style="flex:1">';
+  html += '<div class="card-title">' + exo.title + '</div>';
+  html += '<div class="card-meta">' + subjectBadge(exo.subject);
+  html += '<span class="badge ' + badgeCls + '">' + badgeTxt + '</span>';
+  if (exo.tags.length) html += '<span style="font-size:12px;color:var(--text2)">' + exo.tags.join(' · ') + '</span>';
+  html += '</div>';
+  if (exo.reps > 0) html += '<div class="progress-bar"><div class="progress-fill" style="width:' + progress + '%"></div></div>';
+  html += '</div><div class="card-actions">';
+  if (due && showReview)
+    html += '<button class="btn btn-sm btn-primary" onclick="toggleExpand(' + exo.id + ')">Réviser</button>';
+  else
+    html += '<button class="btn btn-sm" onclick="toggleExpand(' + exo.id + ')" style="color:var(--text2)">Voir</button>';
+  html += '<button class="btn btn-sm btn-danger" onclick="deleteExo(' + exo.id + ')">✕</button>';
+  html += '</div></div>';
+
+  if (expanded) {
+    html += '<div class="expanded">';
+    if (exo.note) html += '<p style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:10px">' + exo.note + '</p>';
+    if (exo.images && exo.images.length) {
+      html += '<div class="exo-images">';
+      exo.images.forEach(function(src, i) {
+        html += '<img class="exo-img" src="' + src + '" alt="Image ' + (i + 1) + '" onclick="openModal(\'' + exo.id + '\',' + i + ')">';
+      });
+      html += '</div>';
+    }
+    if (showReview && due) {
+      html += '<p style="font-size:13px;font-weight:600;margin-top:14px;margin-bottom:8px">Comment s\'est passée cette révision ?</p>';
+      html += '<div class="review-btns">';
+      html += '<button class="review-btn rb-hard" onclick="review(' + exo.id + ',1)">😤 Difficile</button>';
+      html += '<button class="review-btn rb-med" onclick="review(' + exo.id + ',3)">🤔 Moyen</button>';
+      html += '<button class="review-btn rb-easy" onclick="review(' + exo.id + ',5)">✅ Facile</button>';
+      html += '</div>';
+    }
+    if (exo.reps > 0) {
+      html += '<p class="next-info">Prochain rappel : ' + formatDate(exo.nextReview) + ' · ' + exo.reps + ' révision' + (exo.reps > 1 ? 's' : '') + ' · Intervalle : ' + exo.interval + ' j · Facteur : ' + exo.ef + '</p>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function openModal(exoId, idx) {
+  var exo = exos.find(function(e) { return e.id == exoId; });
+  if (!exo) return;
+  document.getElementById('modal-img').src = exo.images[idx];
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+function calcStreak() {
+  var days = new Set();
+  exos.forEach(function(e) { e.history.forEach(function(h) { days.add(h.date); }); });
+  var streak = 0; var d = new Date();
+  while (true) {
+    var ds = d.toISOString().split('T')[0];
+    if (days.has(ds)) { streak++; d.setDate(d.getDate() - 1); } else break;
+  }
+  return streak;
+}
+
+function renderStats() {
+  var dueCount = exos.filter(isDue).length;
+  var doneToday = exos.filter(function(e) { return e.history.length && e.history[e.history.length - 1].date === today(); }).length;
+  document.getElementById('stats').innerHTML =
+    '<div class="stat"><div class="stat-val due-color">' + dueCount + '</div><div class="stat-lbl">À réviser</div></div>' +
+    '<div class="stat"><div class="stat-val ok-color">' + doneToday + '</div><div class="stat-lbl">Révisés aujourd\'hui</div></div>' +
+    '<div class="stat"><div class="stat-val blue-color">' + exos.length + '</div><div class="stat-lbl">Total exercices</div></div>' +
+    '<div class="stat"><div class="stat-val">' + calcStreak() + '🔥</div><div class="stat-lbl">Jours consécutifs</div></div>';
+}
+
+function renderDashboard() {
+  var due = exos.filter(isDue);
+  var later = exos.filter(function(e) { return !isDue(e); }).slice(0, 6);
+  var ds = document.getElementById('due-section');
+  var ls = document.getElementById('later-section');
+
+  if (due.length === 0) {
+    ds.innerHTML = '<div class="ok-banner">✓ Aucun exercice à réviser aujourd\'hui — tu es à jour !</div>';
+  } else {
+    ds.innerHTML = '<div class="section-title" style="margin-bottom:10px">À réviser maintenant (' + due.length + ')</div>' + due.map(function(e) { return renderCard(e, true); }).join('');
+  }
+
+  if (later.length) {
+    ls.innerHTML = '<div class="section-title" style="margin-top:1.5rem;margin-bottom:10px">Prochaines révisions</div>' + later.map(function(e) { return renderCard(e, false); }).join('');
+  } else { ls.innerHTML = ''; }
+}
+
+function renderAllList() {
+  var list = exos.filter(function(e) {
+    if (currentFilter === 'all') return true;
+    if (currentFilter === 'due') return isDue(e);
+    return e.subject === currentFilter;
+  });
+  var c = document.getElementById('all-list');
+  if (!list.length) { c.innerHTML = '<div class="empty">Aucun exercice dans cette catégorie.</div>'; return; }
+  c.innerHTML = list.map(function(e) { return renderCard(e, true); }).join('');
+}
+
+function render() {
+  renderStats();
+  if (document.getElementById('tab-dashboard').style.display !== 'none') renderDashboard();
+  if (document.getElementById('tab-all').style.display !== 'none') renderAllList();
+}
+
+function requestNotifPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+requestNotifPermission();
+render();
+</script>
+</body>
+</html>
