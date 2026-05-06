@@ -92,6 +92,7 @@ input[type=file]{display:none}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999;align-items:center;justify-content:center;cursor:zoom-out}
 .modal-overlay.open{display:flex}
 .modal-overlay img{max-width:95vw;max-height:95vh;border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.algo-info{font-size:11px;color:var(--text3);margin-top:4px}
 @media(max-width:600px){
   .stats{grid-template-columns:repeat(2,1fr)}
   .form-grid{grid-template-columns:1fr}
@@ -105,7 +106,7 @@ input[type=file]{display:none}
   <div class="header">
     <div>
       <div class="title">📚 Révisions Prépa</div>
-      <div class="subtitle">Répétition espacée · Algorithme SM-2 · Maths & Physique</div>
+      <div class="subtitle">Mode Exos calibré · Intervalles 3-10-25-60 j</div>
     </div>
     <div class="tabs">
       <button class="tab active" onclick="showTab('dashboard')">Tableau de bord</button>
@@ -188,19 +189,52 @@ function today() { return new Date().toISOString().split('T')[0]; }
 function addDays(d, n) { var dt = new Date(d); dt.setDate(dt.getDate() + n); return dt.toISOString().split('T')[0]; }
 function isDue(exo) { return exo.nextReview <= today(); }
 
+// ALGO MODE EXOS PRÉPA
+// Intervalles de base : 3, 10, 25, 60 jours pour les premières révisions réussies
+// Ensuite multiplication par EF (facteur de facilité)
+// Bouton Difficile : reset à 1 jour
+// Bouton Moyen : interval × 1.3 (ou 3j si nouveau)
+// Bouton Facile : interval × EF (avec EF qui monte jusqu'à ~2.8)
+
+var BASE_INTERVALS = [3, 10, 25, 60]; // jours pour reps 1, 2, 3, 4
+
 function sm2(exo, q) {
   var ef = exo.ef || 2.5;
   var interval = exo.interval || 0;
   var reps = exo.reps || 0;
-  ef = Math.max(1.3, ef + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)));
-  if (q < 3) { reps = 0; interval = 1; }
-  else {
-    if (reps === 0) interval = 1;
-    else if (reps === 1) interval = 6;
-    else interval = Math.round(interval * ef);
+
+  if (q === 1) {
+    // Difficile : tu ne savais pas refaire, on consolide vite
+    reps = 0;
+    interval = 1;
+    ef = Math.max(1.3, ef - 0.2);
+  } else if (q === 3) {
+    // Moyen : tu as réussi avec effort
+    if (reps < BASE_INTERVALS.length) {
+      // Première fois sur ce palier : on prend l'intervalle de base un peu réduit
+      interval = Math.round(BASE_INTERVALS[reps] * 0.8);
+    } else {
+      interval = Math.round(interval * 1.3);
+    }
+    ef = Math.max(1.3, ef - 0.05);
+    reps++;
+  } else if (q === 5) {
+    // Facile : tu as su refaire sans bloquer
+    if (reps < BASE_INTERVALS.length) {
+      interval = BASE_INTERVALS[reps];
+    } else {
+      interval = Math.round(interval * ef);
+    }
+    ef = Math.min(2.8, ef + 0.1);
     reps++;
   }
-  return { ef: parseFloat(ef.toFixed(2)), interval: interval, reps: reps, nextReview: addDays(today(), interval) };
+
+  return {
+    ef: parseFloat(ef.toFixed(2)),
+    interval: interval,
+    reps: reps,
+    nextReview: addDays(today(), interval)
+  };
 }
 
 function handleImages(e) {
@@ -266,7 +300,7 @@ function addExo() {
   tags = []; tempImages = [];
   renderTagsInput(); renderPreviews();
   showTab('dashboard'); render();
-  showNotif('Exercice ajouté ! Il est prêt pour une première révision.', 'ok');
+  showNotif('Exercice ajouté ! Première révision aujourd\'hui.', 'ok');
 }
 
 function review(id, q) {
@@ -331,9 +365,9 @@ function subjectBadge(s) {
 function renderCard(exo, showReview) {
   var due = isDue(exo);
   var badgeCls = exo.reps === 0 ? 'b-new' : due ? 'b-due' : 'b-ok';
-  var badgeTxt = exo.reps === 0 ? 'Nouveau' : due ? 'À réviser' : 'OK · dans ' + formatDate(exo.nextReview);
+  var badgeTxt = exo.reps === 0 ? 'Nouveau' : due ? 'À réviser' : 'OK · ' + formatDate(exo.nextReview);
   var expanded = expandedId === exo.id;
-  var progress = exo.reps > 0 ? Math.min(100, Math.round((exo.reps / 8) * 100)) : 0;
+  var progress = exo.reps > 0 ? Math.min(100, Math.round((exo.reps / 5) * 100)) : 0;
 
   var html = '<div class="card">';
   html += '<div class="card-header"><div style="flex:1">';
@@ -364,18 +398,23 @@ function renderCard(exo, showReview) {
     if (showReview && due) {
       html += '<p style="font-size:13px;font-weight:600;margin-top:14px;margin-bottom:8px">Comment s\'est passée cette révision ?</p>';
       html += '<div class="review-btns">';
-      html += '<button class="review-btn rb-hard" onclick="review(' + exo.id + ',1)">😤 Difficile</button>';
-      html += '<button class="review-btn rb-med" onclick="review(' + exo.id + ',3)">🤔 Moyen</button>';
-      html += '<button class="review-btn rb-easy" onclick="review(' + exo.id + ',5)">✅ Facile</button>';
+      html += '<button class="review-btn rb-hard" onclick="review(' + exo.id + ',1)">😤 Difficile<br><span style="font-size:10px;font-weight:400;opacity:.7">→ refaire dans 1 j</span></button>';
+      html += '<button class="review-btn rb-med" onclick="review(' + exo.id + ',3)">🤔 Moyen<br><span style="font-size:10px;font-weight:400;opacity:.7">→ ' + simulateInterval(exo, 3) + '</span></button>';
+      html += '<button class="review-btn rb-easy" onclick="review(' + exo.id + ',5)">✅ Facile<br><span style="font-size:10px;font-weight:400;opacity:.7">→ ' + simulateInterval(exo, 5) + '</span></button>';
       html += '</div>';
     }
     if (exo.reps > 0) {
-      html += '<p class="next-info">Prochain rappel : ' + formatDate(exo.nextReview) + ' · ' + exo.reps + ' révision' + (exo.reps > 1 ? 's' : '') + ' · Intervalle : ' + exo.interval + ' j · Facteur : ' + exo.ef + '</p>';
+      html += '<p class="next-info">Prochain rappel : ' + formatDate(exo.nextReview) + ' · ' + exo.reps + ' révision' + (exo.reps > 1 ? 's' : '') + ' réussie' + (exo.reps > 1 ? 's' : '') + ' · Intervalle : ' + exo.interval + ' j · Facteur : ' + exo.ef + '</p>';
     }
     html += '</div>';
   }
   html += '</div>';
   return html;
+}
+
+function simulateInterval(exo, q) {
+  var res = sm2(exo, q);
+  return 'dans ' + res.interval + ' j';
 }
 
 function openModal(exoId, idx) {
